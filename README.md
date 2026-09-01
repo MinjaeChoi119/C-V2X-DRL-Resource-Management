@@ -3,11 +3,11 @@
 Undergraduate thesis, Department of Automotive Engineering, Hanyang University, 2024.
 Advisor: Prof. Han-Shin Jo.
 
-A DQN agent is trained to replace ETSI's distributed congestion control for C-V2X, and the policy it learns is then read back out as a simple rule that outperforms the standard.
+A DQN agent is trained to replace ETSI's distributed congestion control for C-V2X, and the policy it learns is then read back out as an explicit rule.
 
 ## The problem
 
-In C-V2X sidelink mode 4, vehicles choose their own radio resources with no base station coordinating them. As traffic gets denser the channel congests and packets are lost, so a distributed congestion control (DCC) algorithm has to throttle how much channel each vehicle takes.
+In C-V2X sidelink mode 4, vehicles choose their own radio resources with no base station coordinating them. As traffic gets denser the channel congests and packets are lost, so a distributed congestion control (DCC) algorithm has to limit how much channel each vehicle takes.
 
 The ETSI standard does this by looking at **channel busy ratio (CBR)** and capping the channel occupancy ratio limit accordingly:
 
@@ -18,7 +18,7 @@ The ETSI standard does this by looking at **channel busy ratio (CBR)** and cappi
 | 0.65 – 0.8 | 0.006 |
 | 0.8 – 1 | 0.003 |
 
-In practice this holds CBR near 0.65, and it is not enough to keep packet delivery ratio (PDR) above the target once density climbs. That gap is what this work attacks.
+In practice this holds CBR near 0.65, and it is not enough to keep packet delivery ratio (PDR) above the target once density climbs.
 
 ## The DRL model
 
@@ -34,11 +34,11 @@ In practice this holds CBR near 0.65, and it is not enough to keep packet delive
 
 The trained model holds average PDR near the target where ETSI's algorithm does not.
 
-## The result worth reading
+## From the learned policy to an explicit rule
 
-Plotting the trained model's chosen action against vehicle density showed it selecting **one action per density value**. Of the two state variables it was given, only vehicle density was actually driving the decision — CBR was not.
+Plotting the trained model's chosen action against vehicle density showed it selecting one action per density value. Of the two state variables it was given, only vehicle density was driving the decision.
 
-So the black box was replaced with an explicit density-based rule, read directly off what the agent had learned:
+Based on that, a density-based rule was designed to replace ETSI's CBR-based one:
 
 **Target PDR = 85%**
 
@@ -56,9 +56,9 @@ So the black box was replaced with an explicit density-based rule, read directly
 | 172 ≤ ρ < 193 | 0.006 | 166 ms |
 | 193 ≤ ρ | 0.003 | 333 ms |
 
-Run in the simulator, this rule reproduces the DRL model's PDR curve and improves on ETSI's DCC — without any neural network at inference time.
+Run in the simulator, this rule reproduces the DRL model's PDR curve and improves on ETSI's DCC.
 
-The conclusion is not "DQN beats the standard." It is that DRL was useful as an *instrument for finding a better rule*: it surfaced that density, not CBR, is the variable that matters, and the resulting algorithm is simple enough to state in three lines.
+The thesis concludes that DRL can be used to find an improved DCC algorithm, not only to serve as one.
 
 ## Simulation parameters
 
@@ -82,11 +82,9 @@ Thesis Table 1, via the WiLabV2Xsim simulator.
 
 ## Implementation notes
 
-The agent is built on MATLAB's Reinforcement Learning Toolbox primitives (`rlDQNAgent`, `rlQValueRepresentation`, `rlFiniteSetSpec`, `rlFunctionEnv`, `rl.util.ExperienceBuffer`), but **the training loop is written by hand rather than calling `train()`** — epsilon-greedy action selection, replay sampling, target-Q computation, gradient evaluation against a custom loss, gradient clipping, the optimizer step, and periodic target-network synchronization are all explicit in `dcc_dqn.m`. It started from MathWorks' custom DQN training-loop example (the cartpole scaffolding is still in `DQN/`) and the environment, reward and loss were rewritten for this problem.
+The agent is built on MATLAB's Reinforcement Learning Toolbox primitives (`rlDQNAgent`, `rlQValueRepresentation`, `rlFiniteSetSpec`, `rlFunctionEnv`, `rl.util.ExperienceBuffer`), but the training loop is written by hand rather than calling `train()` — epsilon-greedy action selection, replay sampling, target-Q computation, gradient evaluation against a custom loss, gradient clipping, the optimizer step, and periodic target-network synchronization are all explicit in `dcc_dqn.m`. It was adapted from an existing DQN implementation; the cartpole scaffolding it started from is still in `DQN/`. The environment, reward and loss function were written for this problem.
 
-Critic network: 1 input → 64 → 64 → 3, ReLU. Learn rate 0.001, gradient threshold 1, discount 0.99, target update every 500 steps, Double DQN off.
-
-The training environment is not the simulator running live. Channel results were swept in WiLabV2Xsim first (density × each action → CBR, PDR) and `myDCCStepFunction.m` steps over that table, which makes training cheap and reproducible. The learned policy and the density-based rule are then evaluated back inside the full simulator.
+Training does not drive the simulator live. Channel results were swept in WiLabV2Xsim first (density × each action → CBR, PDR) into a data set, and `myDCCStepFunction.m` steps over that table. The learned policy and the density-based rule are then evaluated back inside the full simulator.
 
 ## Layout
 
@@ -96,7 +94,7 @@ Everything sits under `WiLabV2Xsim-main_custom/`, the upstream simulator with ou
 | --- | --- |
 | `DQN/` | Agent, environment, reward, custom loss, training script |
 | `*_final_dqn.m` | Simulator runs driven by the trained DQN policy |
-| `*_final_policy_85.m`, `*_final_policy_90.m` | Simulator runs of the **proposed density-based algorithm** at each target PDR |
+| `*_final_policy_85.m`, `*_final_policy_90.m` | Simulator runs of the proposed density-based algorithm at each target PDR |
 | `conferenceModel_final_85.mat`, `_90.mat` | Trained models |
 | `plot_CBR_PRR.m`, `rho_plot_final.m` | Figures |
 
@@ -108,7 +106,7 @@ MATLAB with the Deep Learning and Reinforcement Learning Toolboxes. `DQN/dcc_dqn
 
 ## Contributors
 
-Two-person capstone project. I designed the study and did the DCC analysis, the DRL model and training, the interpretation of the learned policy, and the density-based algorithm and its evaluation. Jaewook An built the in-simulation measurement and export path — the CBR accumulation and per-timestep packet counters that produced the data set the agent trains on (marked in the source with `% 안재욱` comments).
+Two-person capstone project. I designed the study and did the DCC analysis, the training data set, the DRL model and training, the interpretation of the learned policy, and the density-based algorithm and its evaluation. Jaewook An wrote the in-simulation measurement and export code — the CBR accumulation and per-timestep packet counters, marked in the source with `% 안재욱` comments.
 
 ## Attribution and license
 
