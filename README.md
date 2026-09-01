@@ -16,8 +16,6 @@ The DQN was written from scratch in MATLAB, without a reinforcement-learning too
 - manual gradient computation with clipping
 - a custom Q-learning loss
 
-Doing it by hand rather than calling a library was the point of the exercise: every part of the loop that a toolbox hides — how the target network drifts, what clipping actually does to the update — had to be written and debugged explicitly.
-
 ## Layout
 
 Everything lives under `WiLabV2Xsim-main_custom/`, which is the upstream simulator with my changes applied.
@@ -30,7 +28,7 @@ Everything lives under `WiLabV2Xsim-main_custom/`, which is the upstream simulat
 | `conferenceModel_final_85.mat`, `conferenceModel_final_90.mat` | Trained models |
 | `plot_CBR_PRR.m`, `rho_plot_final.m` | Analysis and figures (channel busy ratio, packet reception ratio, vehicle density) |
 
-`C-V2X Radio Resource Management Using Deep Reinforcement Learning.pdf` is the full thesis; `research poster.pdf` is the summary poster.
+`C-V2X Radio Resource Management Using Deep Reinforcement Learning.pdf` is the full thesis; `research poster.pdf` is the summary poster. Both cover the setup, results and discussion in detail.
 
 ## Running it
 
