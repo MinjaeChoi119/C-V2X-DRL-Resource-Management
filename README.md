@@ -77,12 +77,11 @@ Thesis Table 1, via the WiLabV2Xsim simulator.
 | MCS index | 3 |
 | Minimum SINR | 1.49 dB |
 | Replay memory capacity | 1,000,000 |
-| Mini-batch size | 768 |
 | Minimum T_gen | 100 ms |
 
 ## Implementation notes
 
-The agent is built on MATLAB's Reinforcement Learning Toolbox primitives (`rlDQNAgent`, `rlQValueRepresentation`, `rlFiniteSetSpec`, `rlFunctionEnv`, `rl.util.ExperienceBuffer`), but the training loop is written by hand rather than calling `train()` — epsilon-greedy action selection, replay sampling, target-Q computation, gradient evaluation against a custom loss, gradient clipping, the optimizer step, and periodic target-network synchronization are all explicit in `dcc_dqn.m`. It was adapted from an existing DQN implementation; the cartpole scaffolding it started from is still in `DQN/`. The environment, reward and loss function were written for this problem.
+The agent is built on MATLAB's Reinforcement Learning Toolbox primitives (`rlDQNAgent`, `rlQValueRepresentation`, `rlFiniteSetSpec`, `rlFunctionEnv`, `rl.util.ExperienceBuffer`), but the training loop is written by hand rather than calling `train()`. Epsilon-greedy action selection, replay sampling, target-Q computation, gradient evaluation against a custom loss, gradient clipping, the optimizer step, and periodic target-network synchronization are all explicit in `dcc_dqn.m`. Before writing it I practiced on a CartPole example, swapping its A2C agent out for DQN, and this loop was built on that practice code. The CartPole files are still in `DQN/`. The environment, reward and loss function were written for this problem.
 
 Training does not drive the simulator live. Channel results were swept in WiLabV2Xsim first (density × each action → CBR, PDR) into a data set, and `myDCCStepFunction.m` steps over that table. The learned policy and the density-based rule are then evaluated back inside the full simulator.
 
@@ -106,7 +105,7 @@ MATLAB with the Deep Learning and Reinforcement Learning Toolboxes. `DQN/dcc_dqn
 
 ## Contributors
 
-Two-person capstone project. I designed the study and did the DCC analysis, the training data set, the DRL model and training, the interpretation of the learned policy, and the density-based algorithm and its evaluation. Jaewook An wrote the in-simulation measurement and export code — the CBR accumulation and per-timestep packet counters, marked in the source with `% 안재욱` comments.
+Two-person capstone project. I designed the study and did the DCC analysis, the training data set, the DRL model and training, the interpretation of the learned policy, and the density-based algorithm and its evaluation. Jaewook An wrote the in-simulation measurement and export code. That covers the CBR accumulation and the per-timestep packet counters, marked in the source with `% 안재욱` comments.
 
 ## Attribution and license
 
