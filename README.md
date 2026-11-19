@@ -36,7 +36,7 @@ The trained model holds average PDR near the target where ETSI's algorithm does 
 
 ## From the learned policy to an explicit rule
 
-Plotting the trained model's chosen action against vehicle density showed it selecting one action per density value. Of the two state variables it was given, only vehicle density was driving the decision.
+Plotting the trained model's chosen action against vehicle density showed it selecting one action per density value. Of the two state variables it was given, vehicle density was mainly driving the decision.
 
 Based on that, a density-based rule was designed to replace ETSI's CBR-based one:
 
@@ -56,7 +56,7 @@ Based on that, a density-based rule was designed to replace ETSI's CBR-based one
 | 172 ≤ ρ < 193 | 0.006 | 166 ms |
 | 193 ≤ ρ | 0.003 | 333 ms |
 
-Run in the simulator, this rule reproduces the DRL model's PDR curve and improves on ETSI's DCC.
+Run in the simulator, this rule reproduces the DRL model's PDR curve. At the 90% target it holds PDR at or above 90% up to 200 veh/km, where ETSI's DCC drops below it at about 175 veh/km. Above 240 veh/km it delivers 2 to 3 percentage points more than ETSI.
 
 The thesis concludes that DRL can be used to find an improved DCC algorithm, not only to serve as one.
 
@@ -105,7 +105,7 @@ MATLAB with the Deep Learning and Reinforcement Learning Toolboxes. `DQN/dcc_dqn
 
 ## Contributors
 
-Two-person capstone project. I designed the study and did the DCC analysis, the training data set, the DRL model and training, the interpretation of the learned policy, and the density-based algorithm and its evaluation. Jaewook An wrote the in-simulation measurement and export code. That covers the CBR accumulation and the per-timestep packet counters, marked in the source with `% 안재욱` comments.
+Two-person capstone project. I led the project and did the DCC analysis, the training data set, the DRL model and training, the interpretation of the learned policy, and the density-based algorithm and its evaluation. Jaewook An wrote the in-simulation measurement and export code. That covers the CBR accumulation and the per-timestep packet counters, marked in the source with `% 안재욱` comments.
 
 ## Attribution and license
 
